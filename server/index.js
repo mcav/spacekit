@@ -6,7 +6,7 @@ const https = require('https');
 const WebSocketServer = require('ws').Server;
 
 const createTlsProxyServer = require('./tls-proxy-server');
-const SubdomainUpdater = require('./subdomain-updater');
+const DynamicDNS = require('./dynamic-dns');
 const WebSocketRelay = require('./web-socket-relay');
 
 /**
@@ -75,9 +75,8 @@ class SpaceKitServer {
     proxy.listen(80);
 
     // Configure the DNS updater, if applicable.
-    if (argv.dnsZone && argv.dnsDomain) {
-      this.subdomainUpdater = new SubdomainUpdater(
-        argv.dnsZone, argv.dnsDomain);
+    if (argv.dnsZone) {
+      this.dynamicDNS = new DynamicDNS(argv.dnsZone);
     }
   }
 
@@ -125,8 +124,8 @@ class SpaceKitServer {
       this.relays.delete(hostname);
     });
 
-    if (this.subdomainUpdater) {
-      this.subdomainUpdater.updateSubdomainWithIp(
+    if (this.dynamicDNS) {
+      this.dynamicDNS.pointHostnameToIp(
         hostname, webSocket._socket.localAddress);
     }
   }
@@ -140,10 +139,6 @@ if (require.main === module) {
     .help('h')
     .options('dnsZone', {
       describe: 'the AWS Hosted Zone ID, for dynamic DNS'
-    })
-    .options('dnsDomain', {
-      describe: 'the root domain name, for dynamic DNS',
-      default: 'spacekit.io'
     })
     .options('port', {
       describe: 'the port to listen on',

@@ -5,16 +5,14 @@ AWS.config.credentials = new AWS.SharedIniFileCredentials({
   profile: 'spacekit'
 });
 
-class SubdomainUpdater {
+class DynamicDNS {
 
-  constructor (hostedZoneId, domain) {
+  constructor (hostedZoneId) {
     this.hostedZoneId = hostedZoneId;
-    this.domain = domain;
     this.route53 = new AWS.Route53();
   }
 
-  updateSubdomainWithIp (subdomain, ipAddress) {
-    let hostname = subdomain + '.' + this.domain;
+  pointHostnameToIp (hostname, ipAddress) {
     var params = {
       ChangeBatch: {
         Changes: [
@@ -49,4 +47,4 @@ class SubdomainUpdater {
   }
 }
 
-module.exports = SubdomainUpdater;
+module.exports = DynamicDNS;
